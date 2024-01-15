@@ -22,9 +22,8 @@ const handleDeleteUser = async (req, res) => {
 }
 const renderUpdatePage = async (req, res) => {
     const id = req.params.id;
-    const data = await userService.fetch(id);
-    if (data && data[0]) {
-        const user = data[0];
+    const user = await userService.fetch(id);
+    if (user) {
         return res.render("update.ejs", { user: user });
     }
     else {
