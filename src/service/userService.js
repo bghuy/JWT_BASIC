@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 import { emit } from 'nodemon';
 import { connection, Connection } from '../config/database.js';
 import db from '../models/index.js';
+import { where } from 'sequelize';
 const salt = bcrypt.genSaltSync(10);
 const hashPassword = (password) => {
     const hashedPassword = bcrypt.hashSync(password, salt);
@@ -19,6 +20,26 @@ const add = async (email, username, password) => {
 }
 
 const fetchAll = async () => {
+    //test relationships
+    let newUser = await db.User.findOne({
+        where: { id: 1 },
+        raw: true,
+        include: { model: db.Group, attributes: ['id', 'name'] },
+        nest: true,
+        attributes: ['id', 'username', 'address']
+    })
+    let roles = await db.Role.findAll({
+        raw: true,
+
+        include: {
+            model: db.Group,
+            where: { id: 1 },
+            through: { attributes: [] },
+        },
+        nest: true
+    })
+    console.log("check user >>>", newUser);
+    console.log("check user >>>", roles);
     let users = [];
     users = await db.User.findAll();
     // const [results, fields] = await connection.query(`SELECT * FROM ${tbName}`);
@@ -42,10 +63,6 @@ const fetch = async (id) => {
     return user;
 }
 const update = async (email, username, id) => {
-    // const [results, fields] = await connection.query(`
-    // UPDATE ${tbName}
-    // SET email = ?, username= ?
-    // WHERE id = ?`, [email, username, id])
     await db.User.update({ email: email, username: username }, {
         where: {
             id: id
