@@ -1,10 +1,14 @@
 
 import db from "../models/index"
 const bcrypt = require('bcryptjs');
+import { Op } from 'sequelize';
 const salt = bcrypt.genSaltSync(10);
 const hashPassword = (password) => {
     const hashedPassword = bcrypt.hashSync(password, salt);
     return hashedPassword;
+}
+const checkPassword = (password, hashedPassword) => {
+    return bcrypt.compareSync(password, hashedPassword);
 }
 const isExistedEmail = async (email) => {
     const user = await db.User.findOne({
@@ -56,6 +60,47 @@ const create = async (rawUserData) => {
         }
     }
 }
+const login = async (loginData) => {
+    try {
+        console.log("check login data>> ", loginData.valueLogin);
+        if (await isExistedEmail(loginData.valueLogin) || await isExistedPhone(loginData.valueLogin)) {
+            const user = await db.User.findOne({
+                where: {
+                    [Op.or]: [
+                        { email: loginData.valueLogin },
+                        { phone: loginData.valueLogin }
+                    ]
+                }
+            })
+            console.log("hashedPassword:", user.password);
+            if (user && user.password && checkPassword(loginData.password, user.password)) {
+                return {
+                    EM: "login successfully",//error message
+                    EC: "0",//error code -1 means error , 0 means no error
+                }
+            } else {
+                return {
+                    EM: "login unsuccessfully",//error message
+                    EC: "1",//error code -1 means error , 0 means no error
+                }
+            }
+        }
+        else {
+            return {
+                EM: "The email or phone number or password you entered isn't connected to an account",//error message
+                EC: "1",//error code -1 means error , 0 means no error
+                DT: ""
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        return {
+            EM: "something wrongs in service",//error message
+            EC: "-2",//error code -1 means error , 0 means no error
+            DT: ""
+        }
+    }
 
+}
 
-module.exports = { create }
+module.exports = { create, login, hashPassword, checkPassword, isExistedEmail, isExistedPhone }
