@@ -2,10 +2,15 @@ import express from "express";
 import apiController from "../controller/api.js";
 import userController from "../controller/userController.js"
 import groupController from "../controller/groupController.js"
+import { checkUserJWT, checkUserPermission } from "./../middlewares/JWTActions.js"
 const router = express.Router();
+const testMiddleware = (req, res, next) => {
+    console.log("calling a middleware!!!");
+    next();
+}
 const initApiRoutes = (app) => {
-    router.get("/test-api", apiController.testApi);
     // router.post("/user/create", apiController.createUser);
+    router.all('*', checkUserJWT, checkUserPermission,);
     router.post("/user/login", apiController.login);
 
     router.get("/user/read", userController.readFunc);

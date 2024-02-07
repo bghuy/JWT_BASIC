@@ -2,7 +2,10 @@
 import db from "../models/index"
 const bcrypt = require('bcryptjs');
 import { Op } from 'sequelize';
+import { scope } from "./JWTServices.js"
+import { createJWT, verifyToken } from "./../middlewares/JWTActions.js"
 const salt = bcrypt.genSaltSync(10);
+require("dotenv").config();
 const hashPassword = (password) => {
     const hashedPassword = bcrypt.hashSync(password, salt);
     return hashedPassword;
@@ -31,9 +34,6 @@ const isExistedPhone = async (phone) => {
 
 }
 const create = async (rawUserData) => {
-    //check email,phone,username  existed
-    // hash user password
-    // create user
     try {
         const isValidEmail = await isExistedEmail(rawUserData.email);
         if (isValidEmail === true) {
@@ -46,8 +46,7 @@ const create = async (rawUserData) => {
 
         const { email, password, username, phone } = rawUserData;
         const hashedPassword = hashPassword(password);
-        await db.User.create({ email: email, password: hashedPassword, username: username, phone: phone });
-        console.log("here");
+        await db.User.create({ email: email, password: hashedPassword, username: username, phone: phone, groupId: 4 });
         return {
             EM: "created user successfully",//error message
             EC: "0",//error code -1 means error , 0 means no error
@@ -62,7 +61,6 @@ const create = async (rawUserData) => {
 }
 const login = async (loginData) => {
     try {
-        console.log("check login data>> ", loginData.valueLogin);
         if (await isExistedEmail(loginData.valueLogin) || await isExistedPhone(loginData.valueLogin)) {
             const user = await db.User.findOne({
                 where: {
@@ -72,11 +70,23 @@ const login = async (loginData) => {
                     ]
                 }
             })
-            console.log("hashedPassword:", user.password);
             if (user && user.password && checkPassword(loginData.password, user.password)) {
+                let roles = await scope(user);
+                let payload = {
+                    email: user.email,
+                    scope: roles,
+                    expiresIn: process.env.JWT_EXPIRES_IN
+                }
+                let token = createJWT(payload);
+                let decoded = verifyToken(token);
+                console.log("check decoded >> ", decoded);
                 return {
                     EM: "login successfully",//error message
                     EC: "0",//error code -1 means error , 0 means no error
+                    DT: {
+                        access_token: token,
+                        data: roles,
+                    }
                 }
             } else {
                 return {

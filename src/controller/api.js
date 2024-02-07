@@ -60,7 +60,8 @@ const login = async (req, res) => {
         }
         const rawUserData = req.body;
         let data = await loginRegisterService.login(rawUserData);
-
+        // set cookie
+        res.cookie("jwt", data.DT.access_token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
         return res.status(200).json({
             EM: data.EM,//error message
             EC: data.EC,//error code -1 means error , 0 means no error

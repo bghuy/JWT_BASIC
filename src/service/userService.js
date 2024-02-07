@@ -38,8 +38,6 @@ const fetchAll = async () => {
         },
         nest: true
     })
-    console.log("check user >>>", newUser);
-    console.log("check user >>>", roles);
     let users = [];
     users = await db.User.findAll();
     // const [results, fields] = await connection.query(`SELECT * FROM ${tbName}`);

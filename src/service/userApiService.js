@@ -67,18 +67,43 @@ const fetch = async () => {
 
 }
 const update = async (data) => {
+
     try {
         let user = await db.User.findOne(
             { where: { id: data.id } }
         )
         if (user) {
-            user.save({})
+            user.username = data.username;
+            user.address = data.address;
+
+            if (+data.group >= 0) {
+                user.groupId = +data.group;
+
+            }
+            if (data.sex) {
+                user.sex = data.sex;
+            }
+            await user.save()
+            return {
+                EM: "update user success",
+                EC: "0",
+                DT: []
+            }
         }
         else {
-
+            return {
+                EM: "not found user",
+                EC: "-1",
+                DT: []
+            }
         }
     } catch (error) {
-
+        console.log(error);
+        return {
+            EM: "something wrongs with service",
+            EC: "-2",
+            DT: []
+        }
     }
 }
 const create = async (data) => {
