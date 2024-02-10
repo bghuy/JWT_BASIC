@@ -12,13 +12,14 @@ const initApiRoutes = (app) => {
     // router.post("/user/create", apiController.createUser);
     router.all('*', checkUserJWT, checkUserPermission,);
     router.post("/user/login", apiController.login);
-
+    router.get("/account", userController.getUserAccount)
     router.get("/user/read", userController.readFunc);
     router.post("/user/create", userController.createFunc);
     router.put("/user/update", userController.updateFunc);
     router.delete("/user/delete", userController.deleteFunc);
 
     router.get("/group/read", groupController.readFunc);
+
     return app.use('/api/v1', router);
 }
 

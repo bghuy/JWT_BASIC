@@ -74,8 +74,8 @@ const login = async (loginData) => {
                 let roles = await scope(user);
                 let payload = {
                     email: user.email,
+                    username: user.username,
                     scope: roles,
-                    expiresIn: process.env.JWT_EXPIRES_IN
                 }
                 let token = createJWT(payload);
                 let decoded = verifyToken(token);
@@ -84,8 +84,11 @@ const login = async (loginData) => {
                     EM: "login successfully",//error message
                     EC: "0",//error code -1 means error , 0 means no error
                     DT: {
+                        email: user.email,
+                        username: user.username,
                         access_token: token,
-                        data: roles,
+                        scope: roles,
+
                     }
                 }
             } else {

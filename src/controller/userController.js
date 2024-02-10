@@ -1,7 +1,7 @@
 import userApiService from "./../service/userApiService.js"
+require("dotenv").config();
 const readFunc = async (req, res) => {
     try {
-        console.log("check req", req.user);
         if (req.query.page && req.query.limit) {
             const { page, limit } = req.query;
             let data = await userApiService.fetchWithPageAndLimit(+page, +limit);
@@ -33,7 +33,6 @@ const readFunc = async (req, res) => {
 }
 const createFunc = async (req, res) => {
     try {
-        console.log(req.body);
         if (req.body && req.body.email && req.body.phone && req.body.password && req.body.group) {
             // const { email, phone, username, password, address, sex, group } = req.body;
 
@@ -99,7 +98,6 @@ const deleteFunc = async (req, res) => {
 
             const id = req.body.id
             const data = await userApiService.deleteUser(id);
-            console.log("check req>>>", req.body);
             return res.status(200).json({
                 EM: data.EM,//error message
                 EC: data.EC,//error code -1 means error , 0 means no error
@@ -123,4 +121,17 @@ const deleteFunc = async (req, res) => {
         })
     }
 }
-module.exports = { readFunc, createFunc, updateFunc, deleteFunc }
+const getUserAccount = async (req, res) => {
+    console.log("check user >> ", req.user);
+    return res.status(200).json({
+        EM: "ok",//error message
+        EC: "0",//error code -1 means error , 0 means no error
+        DT: {
+            email: req.user.email,
+            username: req.user.username,
+            access_token: req.token,
+            scope: req.user.scope.Roles,
+        },//data
+    })
+}
+module.exports = { readFunc, createFunc, updateFunc, deleteFunc, getUserAccount }

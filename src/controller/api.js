@@ -8,7 +8,7 @@ const testApi = (req, res) => {
 }
 const createUser = async (req, res) => {
     try {
-        console.log(req.body);
+
         if (!req.body || !req.body.email || !req.body.phone || !req.body.username || !req.body.password) {
             return res.status(200).json({
                 EM: "missing required",//error message
@@ -43,7 +43,6 @@ const createUser = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        console.log(req.body);
         if (!req.body || !req.body.valueLogin || !req.body.password) {
             return res.status(200).json({
                 EM: "missing required",//error message
@@ -61,7 +60,10 @@ const login = async (req, res) => {
         const rawUserData = req.body;
         let data = await loginRegisterService.login(rawUserData);
         // set cookie
-        res.cookie("jwt", data.DT.access_token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+        if (data && data.DT && data.DT.access_token) {
+            res.cookie("jwt", data.DT.access_token, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+        }
+
         return res.status(200).json({
             EM: data.EM,//error message
             EC: data.EC,//error code -1 means error , 0 means no error

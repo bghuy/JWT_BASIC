@@ -6,11 +6,10 @@ const createJWT = (payload) => {
     let key = process.env.JWT_SECRET;
     let token = null;
     try {
-        token = jwt.sign(payload, key);
+        token = jwt.sign(payload, key, { expiresIn: process.env.JWT_EXPIRES_IN });
     } catch (error) {
         console.log(error);
     }
-    console.log(token);
     return token;
 
 }
@@ -26,8 +25,7 @@ const verifyToken = (token) => {
     return decoded;
 }
 const checkUserPermission = (req, res, next) => {
-    console.log("path", req.path);
-    if (nonSecurePaths.includes(req.path)) return next();
+    if (nonSecurePaths.includes(req.path) || req.path === "/account") return next();
     if (req.user) {
         let email = req.user.email;
         let roles = req.user.scope.Roles;
@@ -39,8 +37,6 @@ const checkUserPermission = (req, res, next) => {
                 DT: []
             })
         }
-        console.log("check currentPath", currentUrl);
-        console.log(roles);
         let canAccess = roles.some(item => {
             return item.url === currentUrl;
         });
@@ -68,12 +64,11 @@ const checkUserJWT = (req, res, next) => {
     let cookies = req.cookies;
     if (cookies && cookies.jwt) {
         let token = cookies.jwt
-        console.log("my jwt: ", token);
         let decoded = verifyToken(token);
-
         if (decoded) {
             req.user = decoded;
-            next();
+            req.token = token;
+            return next();
         }
         else {
             return res.status(401).json({
