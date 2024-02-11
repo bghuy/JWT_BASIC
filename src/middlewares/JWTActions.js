@@ -13,6 +13,12 @@ const createJWT = (payload) => {
     return token;
 
 }
+const extractToken = (req) => {
+    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+        return req.headers.authorization.split(' ')[1];
+    }
+    return null;
+}
 const verifyToken = (token) => {
     let key = process.env.JWT_SECRET;
     // return jwt.verify(token, key);
@@ -62,8 +68,10 @@ const checkUserPermission = (req, res, next) => {
 const checkUserJWT = (req, res, next) => {
     if (nonSecurePaths.includes(req.path)) return next();
     let cookies = req.cookies;
-    if (cookies && cookies.jwt) {
-        let token = cookies.jwt
+    let tokenFromHeader = extractToken(req);
+    if ((cookies && cookies.jwt) || tokenFromHeader) {
+        let token = cookies && cookies.jwt ? cookies.jwt : tokenFromHeader;
+        console.log("cookies: ", cookies);
         let decoded = verifyToken(token);
         if (decoded) {
             req.user = decoded;
@@ -78,6 +86,7 @@ const checkUserJWT = (req, res, next) => {
             })
         }
     }
+
     else {
         return res.status(401).json({
             EM: "Not authenticated the user",
